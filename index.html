@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SILAG - IRTC - Master Attendance</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .nav-tabs {
+            display: flex;
+            background: #f8f9fa;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .nav-tab {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: none;
+            background: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+
+        .nav-tab:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        .nav-tab.active {
+            background: #007bff;
+            color: white;
+        }
+
+        .tab-content {
+            padding: 30px;
+            min-height: 600px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .date-display {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+        }
+
+        .btn-primary {
+            background: #007bff;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #0056b3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.3);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #1e7e34;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(40,167,69,0.3);
+        }
+
+        .btn-warning {
+            background: #ffc107;
+            color: #212529;
+        }
+
+        .btn-warning:hover {
+            background: #e0a800;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(255,193,7,0.3);
+        }
+
+        .groups-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 25px;
+            margin-bottom: 30px;
+        }
+
+        .group-card {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .group-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+        }
+
+        .group-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .group-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #495057;
+        }
+
+        .group-stats {
+            display: flex;
+            gap: 15px;
+            font-size: 0.9rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stat.present {
+            color: #28a745;
+        }
+
+        .stat.absent {
+            color: #dc3545;
+        }
+
+        .stat.sick {
+            color: #ff6b6b;
+        }
+
+        .student-list {
+            space-y: 10px;
+        }
+
+        .student-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background: white;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .student-name {
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .attendance-status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 0.9rem;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .status-present {
+            background: #28a745;
+        }
+
+        .status-absent {
+            background: #dc3545;
+        }
+
+        .status-sick {
+            background: #ff6b6b;
+        }
+
+        .time-display {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+
+        .summary-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            font-size: 0.9rem;
+            color: #6c757d;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .present-number {
+            color: #28a745;
+        }
+
+        .absent-number {
+            color: #dc3545;
+        }
+
+        .sick-number {
+            color: #ff6b6b;
+        }
+
+        .total-number {
+            color: #007bff;
+        }
+
+        .group-access {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+
+        .access-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            text-decoration: none;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .access-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+            text-decoration: none;
+            color: white;
+        }
+
+        .access-card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 10px;
+        }
+
+        .access-card p {
+            opacity: 0.9;
+            font-size: 0.9rem;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+        }
+
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: #495057;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: 600;
+            color: #495057;
+        }
+
+        .form-group select,
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 24px;
+            cursor: pointer;
+            color: #6c757d;
+        }
+
+        .close:hover {
+            color: #495057;
+        }
+
+        .student-comment {
+            font-style: italic;
+            color: #6c757d;
+            font-size: 0.8rem;
+            margin-top: 3px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .button-group {
+                justify-content: center;
+            }
+
+            .groups-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .group-access {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>SILAG - IRTC</h1>
+        <p>Diploma in Public Administration - Attendance Management System</p>
+    </div>
+
+    <div class="container">
+        <div class="nav-tabs">
+            <button class="nav-tab active" onclick="showTab('overview')">Overview</button>
+            <button class="nav-tab" onclick="showTab('attendance')">Live Attendance</button>
+            <button class="nav-tab" onclick="showTab('reports')">Reports</button>
+            <button class="nav-tab" onclick="showTab('access')">Group Access</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Overview Tab -->
+            <div id="overview" class="tab-pane active">
+                <div class="controls">
+                    <div class="date-display" id="currentDate"></div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="refreshData()">Refresh Data</button>
+                        <button class="btn btn-success" onclick="exportMasterReport()">Export Master Report</button>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h2 style="margin-bottom: 20px; color: #495057;">Today's Summary</h2>
+                    <div class="summary-grid">
+                        <div class="summary-card">
+                            <div class="summary-number present-number" id="totalPresent">0</div>
+                            <div class="summary-label">Present</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number absent-number" id="totalAbsent">34</div>
+                            <div class="summary-label">Absent</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number sick-number" id="totalSick">0</div>
+                            <div class="summary-label">Sick</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number total-number">34</div>
+                            <div class="summary-label">Total Students</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="groups-grid" id="groupsOverview">
+                    <!-- Group cards will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Live Attendance Tab -->
+            <div id="attendance" class="tab-pane">
+                <div class="controls">
+                    <div class="date-display" id="attendanceDate"></div>
+                    <div class="button-group">
+                        <button class="btn btn-primary" onclick="markAttendance()">Manual Entry</button>
+                        <button class="btn btn-warning" onclick="refreshAttendance()">Refresh</button>
+                    </div>
+                </div>
+
+                <div class="groups-grid" id="attendanceView">
+                    <!-- Live attendance view will be populated by JavaScript -->
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports" class="tab-pane">
+                <div class="controls">
+                    <h2 style="color: #495057;">Generate Reports</h2>
+                    <div class="button-group">
+                        <button class="btn btn-success" onclick="exportMasterReport()">Master Report (All Groups)</button>
+                        <button class="btn btn-primary" onclick="exportWeeklyReport()">Weekly Summary</button>
+                        <button class="btn btn-warning" onclick="exportGroupReports()">Individual Group Reports</button>
+                    </div>
+                </div>
+
+                <div class="summary-section">
+                    <h3 style="margin-bottom: 20px; color: #495057;">Report Options</h3>
+                    <div class="form-group">
+                        <label>Date Range:</label>
+                        <div style="display: flex; gap: 10px;">
+                            <input type="date" id="reportStartDate" style="flex: 1;">
+                            <input type="date" id="reportEndDate" style="flex: 1;">
+                        </div>
+                    </div>
+                    <button class="btn btn-primary" onclick="generateCustomReport()">Generate Custom Report</button>
+                </div>
+            </div>
+
+            <!-- Group Access Tab -->
+            <div id="access" class="tab-pane">
+                <h2 style="margin-bottom: 30px; color: #495057; text-align: center;">Group Access Portal</h2>
+                <div class="group-access">
+                    <a href="group-honesty.html" class="access-card">
+                        <h3>Group Honesty</h3>
+                        <p>6 Students</p>
+                    </a>
+                    <a href="group-integrity.html" class="access-card">
+                        <h3>Group Integrity</h3>
+                        <p>6 Students</p>
+                    </a>
+                    <a href="group-wisdom.html" class="access-card">
+                        <h3>Group Wisdom</h3>
+                        <p>5 Students</p>
+                    </a>
+                    <a href="group-transparency.html" class="access-card">
+                        <h3>Group Transparency</h3>
+                        <p>6 Students</p>
+                    </a>
+                    <a href="group-respect.html" class="access-card">
+                        <h3>Group Respect</h3>
+                        <p>5 Students</p>
+                    </a>
+                    <a href="group-accountability.html" class="access-card">
+                        <h3>Group Accountability</h3>
+                        <p>6 Students</p>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Manual Attendance Modal -->
+    <div id="attendanceModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeModal()">&times;</span>
+            <h3>Manual Attendance Entry</h3>
+            <div class="form-group">
+                <label>Select Student:</label>
+                <select id="studentSelect">
+                    <option value="">Choose a student...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Status:</label>
+                <select id="statusSelect">
+                    <option value="present">Present</option>
+                    <option value="absent">Absent</option>
+                    <option value="sick">Sick</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>Time:</label>
+                <input type="time" id="timeInput">
+            </div>
+            <div class="form-group">
+                <label>Comment (optional):</label>
+                <input type="text" id="commentInput" placeholder="Add a note...">
+            </div>
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button class="btn btn-primary" onclick="saveAttendance()">Save</button>
+                <button class="btn" style="background: #6c757d; color: white;" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Student data
+        const groups = {
+            'Honesty': ['Lawrence Mararang', 'Lesley Elias', 'Daniella Bata', 'Lomot Pomat', 'Joseph Maidang', 'Rachel Sailas'],
+            'Integrity': ['Regina Illai', 'Adrian Palo', 'Relvie Kolias', 'Samuel Wawa', 'Judith Vunuvung', 'Paul Toduk'],
+            'Wisdom': ['Chris Patu', 'Bernard Mabubu', 'Gervina Langlagur', 'Graham Tommy', 'Rayndolyn Namues'],
+            'Transparency': ['George Masiu', 'Penias Umong', 'Elsie David', 'Henrica Matlaun', 'Petra Michael', 'Lesley Waninara'],
+            'Respect': ['Martin Linge', 'Patricia Minong', 'Julius Malawau', 'Amanda Manaseh', 'Sanian kue'],
+            'Accountability': ['Paul Tilau', 'Florence Bokoni', 'Mark Agave', 'Arnolda Murunata', 'Helen Pamuan', 'Stacy Chan']
+        };
+        const groupColors = {
+    'Honesty': '#4CAF50',        // Green
+    'Integrity': '#2196F3',      // Blue  
+    'Wisdom': '#FF9800',         // Orange
+    'Transparency': '#9C27B0',   // Purple
+    'Respect': '#F44336',        // Red
+    'Accountability': '#00BCD4'  // Cyan
+};
+
+        // Attendance data storage
+        let attendanceData = {};
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCurrentDate();
+            initializeAttendanceData();
+            populateGroupsOverview();
+            populateStudentSelect();
+            updateSummary();
+            
+            // Set default time to current time
+            const now = new Date();
+            const timeString = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            document.getElementById('timeInput').value = timeString;
+            
+            // Auto-refresh from localStorage every 10 seconds
+            setInterval(loadLatestData, 10000);
+        });
+
+        function updateCurrentDate() {
+            const now = new Date();
+            const dateString = now.toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            document.getElementById('currentDate').textContent = dateString;
+            document.getElementById('attendanceDate').textContent = dateString;
+        }
+
+        function initializeAttendanceData() {
+            const today = new Date().toDateString();
+            
+            // Load from localStorage if exists
+            const savedData = JSON.parse(localStorage.getItem('masterAttendanceData') || '{}');
+            if (savedData[today]) {
+                attendanceData = savedData;
+                return;
+            }
+            
+            // Initialize if no saved data
+            if (!attendanceData[today]) {
+                attendanceData[today] = {};
+                Object.keys(groups).forEach(groupName => {
+                    groups[groupName].forEach(student => {
+                        attendanceData[today][student] = {
+                            status: 'absent',
+                            time: null,
+                            group: groupName,
+                            comment: ''
+                        };
+                    });
+                });
+                
+                // Save initial data
+                localStorage.setItem('masterAttendanceData', JSON.stringify(attendanceData));
+            }
+        }
+
+        // Add this new function to load latest data from localStorage
+        function loadLatestData() {
+            const savedData = JSON.parse(localStorage.getItem('masterAttendanceData') || '{}');
+            if (Object.keys(savedData).length > 0) {
+                attendanceData = savedData;
+                populateGroupsOverview();
+                updateSummary();
+            }
+        }
+
+        function populateGroupsOverview() {
+            const container = document.getElementById('groupsOverview');
+            const attendanceContainer = document.getElementById('attendanceView');
+            const today = new Date().toDateString();
+            
+            container.innerHTML = '';
+            attendanceContainer.innerHTML = '';
+
+            Object.keys(groups).forEach(groupName => {
+                const groupCard = createGroupCard(groupName, groups[groupName], today);
+                container.appendChild(groupCard);
+                attendanceContainer.appendChild(groupCard.cloneNode(true));
+            });
+        }
+
+        function createGroupCard(groupName, students, today) {
+            const card = document.createElement('div');
+            card.className = 'group-card';
+            const groupColor = groupColors[groupName];
+card.style.borderLeft = `5px solid ${groupColor}`;
+
+            let presentCount = 0;
+            let absentCount = 0;
+            let sickCount = 0;
+
+            students.forEach(student => {
+                const status = attendanceData[today] && attendanceData[today][student] 
+                    ? attendanceData[today][student].status 
+                    : 'absent';
+                
+                if (status === 'present') presentCount++;
+                else if (status === 'sick') sickCount++;
+                else absentCount++;
+            });
+
+            card.innerHTML = `
+                <div class="group-header">
+                    <div class="group-name" style="color: ${groupColor};">Group ${groupName}</div>
+                        <div class="stat present">
+                            <div class="status-indicator status-present"></div>
+                            ${presentCount}
+                        </div>
+                        <div class="stat sick">
+                            <div class="status-indicator status-sick"></div>
+                            ${sickCount}
+                        </div>
+                        <div class="stat absent">
+                            <div class="status-indicator status-absent"></div>
+                            ${absentCount}
+                        </div>
+                    </div>
+                </div>
+                <div class="student-list">
+                    ${students.map(student => {
+                        const studentData = attendanceData[today] && attendanceData[today][student] 
+                            ? attendanceData[today][student] 
+                            : { status: 'absent', time: null, comment: '' };
+                        
+                        let statusClass = 'status-absent';
+                        let statusText = 'Absent';
+                        
+                        if (studentData.status === 'present') {
+                            statusClass = 'status-present';
+                            statusText = 'Present';
+                        } else if (studentData.status === 'sick') {
+                            statusClass = 'status-sick';
+                            statusText = 'Sick';
+                        }
+                        
+                        const timeDisplay = studentData.time ? `at ${studentData.time}` : '';
+                        const commentDisplay = studentData.comment ? `<div class="student-comment">"${studentData.comment}"</div>` : '';
+                        
+                        return `
+                            <div class="student-item">
+                                <div>
+                                    <div class="student-name">${student}</div>
+                                    ${commentDisplay}
+                                </div>
+                                <div class="attendance-status">
+                                    <div class="status-indicator ${statusClass}"></div>
+                                    <span>${statusText} ${timeDisplay}</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            return card;
+        }
+
+        function populateStudentSelect() {
+            const select = document.getElementById('studentSelect');
+            select.innerHTML = '<option value="">Choose a student...</option>';
+            
+            Object.keys(groups).forEach(groupName => {
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = `Group ${groupName}`;
+                
+                groups[groupName].forEach(student => {
+                    const option = document.createElement('option');
+                    option.value = student;
+                    option.textContent = student;
+                    optgroup.appendChild(option);
+                });
+                
+                select.appendChild(optgroup);
+            });
+        }
+
+        function updateSummary() {
+            const today = new Date().toDateString();
+            let totalPresent = 0;
+            let totalAbsent = 0;
+            let totalSick = 0;
+
+            Object.keys(groups).forEach(groupName => {
+                groups[groupName].forEach(student => {
+                    const status = attendanceData[today] && attendanceData[today][student] 
+                        ? attendanceData[today][student].status 
+                        : 'absent';
+                    
+                    if (status === 'present') totalPresent++;
+                    else if (status === 'sick') totalSick++;
+                    else totalAbsent++;
+                });
+            });
+
+            document.getElementById('totalPresent').textContent = totalPresent;
+            document.getElementById('totalAbsent').textContent = totalAbsent;
+            document.getElementById('totalSick').textContent = totalSick;
+        }
+
+        function showTab(tabName) {
+            // Hide all tabs
+            document.querySelectorAll('.tab-pane').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all nav tabs
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked nav tab
+            event.target.classList.add('active');
+        }
+
+        function markAttendance() {
+            document.getElementById('attendanceModal').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('attendanceModal').style.display = 'none';
+            document.getElementById('commentInput').value = '';
+        }
+
+        function saveAttendance() {
+            const student = document.getElementById('studentSelect').value;
+            const status = document.getElementById('statusSelect').value;
+            const time = document.getElementById('timeInput').value;
+            const comment = document.getElementById('commentInput').value;
+            
+            if (!student) {
+                alert('Please select a student');
+                return;
+            }
+            
+            const today = new Date().toDateString();
+            if (!attendanceData[today]) {
+                initializeAttendanceData();
+            }
+            
+            attendanceData[today][student].status = status;
+            attendanceData[today][student].time = time;
+            attendanceData[today][student].comment = comment;
+            
+            // Save to localStorage
+            localStorage.setItem('masterAttendanceData', JSON.stringify(attendanceData));
+            
+            // Update displays
+            populateGroupsOverview();
+            updateSummary();
+            closeModal();
+            
+            const commentText = comment ? ` with note: "${comment}"` : '';
+            alert(`Attendance updated for ${student}: ${status.toUpperCase()} at ${time}${commentText}`);
+        }
+
+        function refreshData() {
+            loadLatestData();
+            populateGroupsOverview();
+            updateSummary();
+            alert('Data refreshed successfully!');
+        }
+
+        function refreshAttendance() {
+            populateGroupsOverview();
+            alert('Attendance view refreshed!');
+        }
+
+        function exportMasterReport() {
+            const today = new Date().toDateString();
+            let csvContent = "Group,Student Name,Status,Time,Comment,Date\n";
+            
+            Object.keys(groups).forEach(groupName => {
+                groups[groupName].forEach(student => {
+                    const studentData = attendanceData[today] && attendanceData[today][student] 
+                        ? attendanceData[today][student] 
+                        : { status: 'absent', time: 'N/A', comment: '' };
+                    
+                    csvContent += `${groupName},"${student}",${studentData.status},${studentData.time || 'N/A'},"${studentData.comment || ''}",${today}\n`;
+                });
+            });
+            
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", `IRTC_Master_Attendance_${new Date().toISOString().split('T')[0]}.csv`);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function exportWeeklyReport() {
+            alert('Weekly report generation feature will be implemented based on accumulated daily data.');
+        }
+
+        function exportGroupReports() {
+            alert('Individual group reports will be generated separately for each group.');
+        }
+
+        function generateCustomReport() {
+            const startDate = document.getElementById('reportStartDate').value;
+            const endDate = document.getElementById('reportEndDate').value;
+            
+            if (!startDate || !endDate) {
+                alert('Please select both start and end dates.');
+                return;
+            }
+            
+            alert(`Custom report generation for ${startDate} to ${endDate} - Feature to be implemented.`);
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('attendanceModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+
+        // Auto-refresh every 5 minutes
+        setInterval(() => {
+            refreshData();
+        }, 300000);
+    </script>
+</body>
+</html>
